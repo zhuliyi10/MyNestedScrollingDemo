@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.leory.mynestedscrollingdemo.nested_scrolling.NestedHomeView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/home"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rcv_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</com.leory.mynestedscrollingdemo.nested_scrolling.NestedHomeView>
