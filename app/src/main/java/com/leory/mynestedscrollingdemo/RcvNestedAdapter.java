@@ -63,6 +63,12 @@ public class RcvNestedAdapter extends BaseMultiItemQuickAdapter<MultiItemEntity,
     }
 
     private void convertNormal(BaseViewHolder baseViewHolder, HeadBean headBean) {
+        mHomeView.post(new Runnable() {
+            @Override
+            public void run() {
+                mHomeView.setHeaderView(baseViewHolder.itemView);
+            }
+        });
 
     }
 

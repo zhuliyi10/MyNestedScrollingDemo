@@ -2,7 +2,10 @@ package com.leory.mynestedscrollingdemo.nested_scrolling;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,8 +30,12 @@ import java.util.ArrayList;
 public class NestedHomeView extends NestedScrollingParent2Layout {
     private final String TAG = this.getClass().getSimpleName();
     private View mLastItemView;
+    private View mHeaderView;
     private RecyclerView mRcvParent;
     private RcvNestedAdapter mRcvNestedAdapter;
+    private int mHeaderMinHeight;
+    private int mHeaderHeight;
+    private int tabHeight;//标签高度
 
     public NestedHomeView(Context context) {
         this(context, null);
@@ -59,6 +66,7 @@ public class NestedHomeView extends NestedScrollingParent2Layout {
         mRcvNestedAdapter.setNewInstance(list);
     }
 
+
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
@@ -75,11 +83,18 @@ public class NestedHomeView extends NestedScrollingParent2Layout {
     @Override
     public void onNestedPreScroll(@NonNull View target, int dx, int dy, @NonNull int[] consumed, int type) {
 
+        handleParentRecyclerViewScroll(target, dy, consumed);
 
-        int lastItemTop = mLastItemView.getTop();
-        if (target == mRcvParent) {
-            handleParentRecyclerViewScroll(lastItemTop, dy, consumed);
-        }
+    }
+
+    /**
+     * 设置头部view
+     * @param headerView
+     */
+    public void setHeaderView(View headerView){
+        mHeaderView=headerView;
+        mHeaderHeight=mHeaderView.getMeasuredHeight();
+        mHeaderMinHeight= (int) (mHeaderHeight*0.6);
     }
 
     /**
@@ -90,6 +105,12 @@ public class NestedHomeView extends NestedScrollingParent2Layout {
      */
     public void setLastItem(View lastItemView) {
         mLastItemView = lastItemView;
+        View tab = mLastItemView.findViewById(R.id.tab_layout);
+        tabHeight = tab.getMeasuredHeight();
+        ViewGroup.LayoutParams lp = mLastItemView.getLayoutParams();
+        lp.height = getMeasuredHeight() - mHeaderMinHeight+tabHeight;
+        mLastItemView.setLayoutParams(lp);
+
     }
 
     public RecyclerView getCurrentChildRecyclerView() {
@@ -103,45 +124,71 @@ public class NestedHomeView extends NestedScrollingParent2Layout {
     /**
      * 滑动外层RecyclerView时，的处理
      *
-     * @param lastItemTop tab到屏幕顶部的距离，是0就代表到顶了
-     * @param dy          目标滑动距离， dy>0 代表向上滑
+     * @param dy       目标滑动距离， dy>0 代表向上滑
      * @param consumed
      */
-    private void handleParentRecyclerViewScroll(int lastItemTop, int dy, int[] consumed) {
-
+    private void handleParentRecyclerViewScroll(View target, int dy, int[] consumed) {
         RecyclerView rcvChild = getCurrentChildRecyclerView();
         if (rcvChild == null) return;
-        //tab上边没到顶
-        if (lastItemTop != 0) {
-            if (dy > 0) {//向上滑
+        if (target == mRcvParent) {
+            Log.d(TAG, "handleParentRecyclerViewScroll: mRcvParent");
+
+            int lastItemTop = mLastItemView.getTop() - mHeaderMinHeight;//tab到屏幕最顶部
+            int childScrolledY = rcvChild.computeVerticalScrollOffset();
+            if (dy > 0) {//向上
+                float tranY=mLastItemView.getTranslationY();
+                if (tranY > -tabHeight) {
+                    float newTranY=tranY-dy;
+                    if(newTranY<-tabHeight){
+                        dy= (int) (-newTranY-tabHeight);
+                        newTranY=-tabHeight;
+                    }else {
+                        dy=0;
+                    }
+                    mLastItemView.setTranslationY(newTranY);
+                }
                 if (lastItemTop > dy) {
                     //tab的top>想要滑动的dy,就让外部RecyclerView自行处理
+                    mRcvParent.scrollBy(0, dy);
                 } else {
-                    consumed[1] = dy;
-                    mRcvParent.scrollBy(0, lastItemTop);
-                    rcvChild.scrollBy(0, dy - lastItemTop);
+                    mRcvParent.scrollBy(0, lastItemTop);//外部消费完顶部距离
+                    rcvChild.scrollBy(0, dy - lastItemTop);//剩下的交给子rcv处理
                 }
 
-            } else {//向下滑，就让外部RecyclerView自行处理
+            } else {//向下
 
-            }
-        } else {//tab上边到顶了
-            if (dy > 0) {
-                //向上，内层直接消费掉
-                rcvChild.scrollBy(0, dy);
-                consumed[1] = dy;
-            } else {
-                int childScrolledY = rcvChild.computeVerticalScrollOffset();
                 if (childScrolledY > Math.abs(dy)) {
-                    //内层已滚动的距离，大于想要滚动的距离，内层直接消费掉
-                    rcvChild.scrollBy(0, dy);
-                    consumed[1] = dy;
+                    rcvChild.scrollBy(0, dy);//全部交给子rcv
                 } else {
-                    //内层已滚动的距离，小于想要滚动的距离，那么内层消费一部分，到顶后，剩的还给外层自行滑动
-                    rcvChild.scrollBy(0, childScrolledY);
-                    consumed[1] = childScrolledY - Math.abs(dy);
+                    rcvChild.scrollBy(0, -childScrolledY);//子rcv滚到最顶
+                    dy=childScrolledY +dy;
+                    int deltaY=mHeaderHeight-mLastItemView.getTop();
+                    if(deltaY>Math.abs(dy)){
+                        mRcvParent.scrollBy(0, dy);//剩下的交给父rcv
+                    }else {
+                        mRcvParent.scrollBy(0, -deltaY);//剩下的交给父rcv
+                        dy=dy+deltaY;
+                        float tranY=mLastItemView.getTranslationY();
+                        float newTranY=tranY-dy;
+                        if(newTranY>0){
+                            newTranY=0;
+                        }
+                        mLastItemView.setTranslationY(newTranY);
+                    }
+
                 }
             }
+            consumed[1] = dy;
+        } else if (target == rcvChild) {
+            Log.d(TAG, "handleParentRecyclerViewScroll: rcvChild");
+        } else {
+            Log.d(TAG, "handleParentRecyclerViewScroll: other");
         }
     }
+
+    private int dp2px(float dpValue) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                dpValue, getResources().getDisplayMetrics());
+    }
+
 }
