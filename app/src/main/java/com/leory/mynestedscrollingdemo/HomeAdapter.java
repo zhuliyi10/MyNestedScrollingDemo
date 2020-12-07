@@ -13,7 +13,7 @@ import java.util.List;
 public class HomeAdapter extends BaseAdapter<String> {
     private static final String TAG=HomeAdapter.class.getSimpleName();
     public HomeAdapter(@Nullable List<String> data) {
-        super(R.layout.item_home, data);
+        super(R.layout.item_home_list, data);
     }
 
     @Override

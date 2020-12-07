@@ -35,7 +35,7 @@ public class RcvNestedAdapter extends BaseMultiItemQuickAdapter<MultiItemEntity,
     private List<HomeFragment>mHomeFragments=new ArrayList<>();
 
     public RcvNestedAdapter() {
-        addItemType(NORMAL_TYPE, R.layout.head_home);
+        addItemType(NORMAL_TYPE, R.layout.item_head);
         addItemType(VIEW_PAGE_TYPE, R.layout.item_view_page);
     }
 
