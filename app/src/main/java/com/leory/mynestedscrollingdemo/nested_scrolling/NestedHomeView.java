@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.ViewCompat;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -58,7 +59,7 @@ public class NestedHomeView extends NestedScrollingParent2Layout {
     private void initView() {
         mRcvParent = findViewById(R.id.rcv_parent);
         mRcvParent.setLayoutManager(new LinearLayoutManager(getContext()));
-        mRcvNestedAdapter = new RcvNestedAdapter();
+        mRcvNestedAdapter = new RcvNestedAdapter((FragmentActivity) getContext());
         mRcvNestedAdapter.setNestedParentLayout(this);
         mRcvParent.setAdapter(mRcvNestedAdapter);
         ArrayList<MultiItemEntity> list = new ArrayList<>();

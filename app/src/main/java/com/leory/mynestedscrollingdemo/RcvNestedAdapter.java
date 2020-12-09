@@ -1,10 +1,6 @@
 package com.leory.mynestedscrollingdemo;
 
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
@@ -28,13 +24,15 @@ import java.util.List;
 public class RcvNestedAdapter extends BaseMultiItemQuickAdapter<MultiItemEntity, BaseViewHolder> {
     public static final int NORMAL_TYPE = 1;
     public static final int VIEW_PAGE_TYPE = 2;
-    private String[] mTitles = {"头条号","大鱼号","百家号","企鹅号","一点号"};
+    private String[] mTitles = {"头条号", "大鱼号", "百家号", "企鹅号", "一点号"};
     private NestedHomeView mHomeView;
     private ViewPager mViewPager;
     private TabLayout mTabLayout;
-    private List<HomeFragment>mHomeFragments=new ArrayList<>();
+    private List<HomeFragment> mHomeFragments = new ArrayList<>();
+    private final FragmentActivity mActivity;
 
-    public RcvNestedAdapter() {
+    public RcvNestedAdapter(FragmentActivity fragmentActivity) {
+        mActivity = fragmentActivity;
         addItemType(NORMAL_TYPE, R.layout.item_head);
         addItemType(VIEW_PAGE_TYPE, R.layout.item_view_page);
     }
@@ -58,7 +56,8 @@ public class RcvNestedAdapter extends BaseMultiItemQuickAdapter<MultiItemEntity,
     public void setNestedParentLayout(NestedHomeView homeView) {
         mHomeView = homeView;
     }
-    public RecyclerView getCurrentRecyclerView(){
+
+    public RecyclerView getCurrentRecyclerView() {
         return mHomeFragments.get(mViewPager.getCurrentItem()).getRecyclerView();
     }
 
@@ -79,47 +78,20 @@ public class RcvNestedAdapter extends BaseMultiItemQuickAdapter<MultiItemEntity,
             HomeFragment fragment = HomeFragment.newInstance();
             mHomeFragments.add(fragment);
         }
-        HomePagerAdapter adapter = new HomePagerAdapter(((FragmentActivity) getContext()).getSupportFragmentManager(), mTitles, mHomeFragments);
+        HomePagerAdapter adapter = new HomePagerAdapter(mActivity.getSupportFragmentManager(), mTitles, mHomeFragments);
+//        mViewPager.setOffscreenPageLimit(2);
         mViewPager.setAdapter(adapter);
+        mViewPager.setCurrentItem(0);
+
         mTabLayout.setupWithViewPager(mViewPager);
 
-            mHomeView.post(new Runnable() {
-                @Override
-                public void run() {
-                    mHomeView.setLastItem(baseViewHolder.itemView);
-                }
-            });
+        mHomeView.post(new Runnable() {
+            @Override
+            public void run() {
+                mHomeView.setLastItem(baseViewHolder.itemView);
+            }
+        });
 
-
-    }
-
-
-    class HomePagerAdapter extends FragmentStatePagerAdapter {
-
-        private final String[] mTitles;
-        private List<HomeFragment> mFragments;
-
-        public HomePagerAdapter(FragmentManager fm, String[] titles, List<HomeFragment> fragments) {
-            super(fm);
-            mTitles = titles;
-            mFragments = fragments;
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            return mFragments.get(position);
-        }
-
-        @Override
-        public int getCount() {
-            return mTitles.length;
-        }
-
-        @Nullable
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return mTitles[position];
-        }
 
     }
 

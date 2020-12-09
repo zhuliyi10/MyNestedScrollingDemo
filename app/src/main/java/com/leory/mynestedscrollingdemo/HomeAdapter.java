@@ -19,6 +19,5 @@ public class HomeAdapter extends BaseAdapter<String> {
     @Override
     protected void convert(@NotNull BaseViewHolder holder, String s) {
         holder.setText(R.id.txt, s);
-        Log.d(TAG, "convert: "+s);
     }
 }

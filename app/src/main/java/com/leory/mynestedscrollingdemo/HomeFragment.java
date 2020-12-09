@@ -10,21 +10,21 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.leory.mynestedscrollingdemo.nested_scrolling.NestedHomeView;
-
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 public class HomeFragment extends Fragment {
+    private static final String TAG = HomeFragment.class.getSimpleName();
+    private static final String KEY_PADDING_TOP = "padding_top";
+    private WeakReference<RecyclerView> mWeakReference;
 
-    private static final String KEY_PADDING_TOP="padding_top";
-    private RecyclerView mRecyclerView;
     private HomeFragment() {
     }
 
     public static HomeFragment newInstance() {
         HomeFragment fragment = new HomeFragment();
-        Bundle args=new Bundle();
+        Bundle args = new Bundle();
         fragment.setArguments(args);
         return fragment;
     }
@@ -33,7 +33,6 @@ public class HomeFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
 
 
     @Override
@@ -46,21 +45,23 @@ public class HomeFragment extends Fragment {
     }
 
 
-
-
-    public RecyclerView getRecyclerView(){
-        return mRecyclerView;
+    public RecyclerView getRecyclerView() {
+        if (mWeakReference != null) {
+            return mWeakReference.get();
+        }
+        return null;
     }
 
     private void initView(View root) {
-        mRecyclerView = root.findViewById(R.id.rcv);
-        mRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        RecyclerView recyclerView = root.findViewById(R.id.rcv);
+        mWeakReference = new WeakReference<>(recyclerView);
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         List<String> data = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             data.add("item" + (i + 1));
         }
         HomeAdapter adapter = new HomeAdapter(data);
-        mRecyclerView.setAdapter(adapter);
+        recyclerView.setAdapter(adapter);
     }
 
 
